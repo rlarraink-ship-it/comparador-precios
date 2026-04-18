@@ -66,7 +66,7 @@ class AgenteComparadorPrecios:
                 "❌ No se encontró ANTHROPIC_API_KEY.\n"
                 "Ejecuta: export ANTHROPIC_API_KEY=tu-clave-aqui"
             )
-        self.cliente = anthropic.Anthropic(api_key=api_key)
+        self.cliente = anthropic.Anthropic(api_key=api_key.strip())
         self.modelo = "claude-sonnet-4-6"
 
     def ejecutar(self, consulta: str, modo: str = "todo", verbose: bool = True) -> str:
