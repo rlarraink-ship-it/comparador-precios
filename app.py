@@ -12,7 +12,8 @@ from agent import AgenteComparadorPrecios
 import json
 import traceback
 
-app = Flask(__name__)
+import os
+app = Flask(__name__, template_folder=os.path.join(os.path.dirname(os.path.abspath(__file__)), "templates"))
 agente = AgenteComparadorPrecios()
 
 
