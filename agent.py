@@ -47,7 +47,7 @@ TIENDAS_CENCOSUD = [
     ("Tottus",          buscar_en_tottus),
     ("Acuenta",         buscar_en_acuenta),
 ]
-]
+
 
 TODAS_LAS_TIENDAS = TIENDAS_RETAIL + TIENDAS_SUPER
 
@@ -89,11 +89,11 @@ class AgenteComparadorPrecios:
             print(f"{'='*55}")
 
         if modo == "super":
-    tiendas = TIENDAS_SUPER
-elif modo == "cencosud":
-    tiendas = TIENDAS_CENCOSUD
-else:
-    tiendas = TODAS_LAS_TIENDAS
+            tiendas = TIENDAS_SUPER
+        elif modo == "cencosud":
+            tiendas = TIENDAS_CENCOSUD
+        else:
+            tiendas = TODAS_LAS_TIENDAS
 
         # ── Paso 1: buscar en paralelo ────────────────────────────────────────
         resultados_acumulados = []
