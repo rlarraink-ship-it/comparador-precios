@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PrecioMeter — Comparador de Precios</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0e1117;
+      --bg2: #161b27;
+      --bg3: #1e2535;
+      --border: rgba(255,255,255,0.08);
+      --border2: rgba(255,255,255,0.14);
+      --text: #f0f2f8;
+      --text2: #8b93a8;
+      --text3: #555e73;
+      --accent: #4ade80;
+      --accent2: #22c55e;
+      --accent-glow: rgba(74,222,128,0.15);
+      --gold: #fbbf24;
+      --red: #f87171;
+      --blue: #60a5fa;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Grid background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Glow orb */
+    body::after {
+      content: '';
+      position: fixed;
+      top: -200px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 800px;
+      height: 600px;
+      background: radial-gradient(ellipse, rgba(74,222,128,0.06) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 0 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── Header ── */
+    header {
+      padding: 48px 0 40px;
+      text-align: center;
+      animation: fadeDown 0.6s ease both;
+    }
+
+    .logo-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--accent-glow);
+      border: 1px solid rgba(74,222,128,0.3);
+      border-radius: 100px;
+      padding: 6px 16px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--accent);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    .logo-dot {
+      width: 6px; height: 6px;
+      background: var(--accent);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(2.2rem, 5vw, 3.2rem);
+      font-weight: 400;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+
+    h1 span { color: var(--accent); }
+
+    .subtitle {
+      font-size: 15px;
+      color: var(--text2);
+      font-weight: 300;
+      line-height: 1.6;
+    }
+
+    /* ── Search Box ── */
+    .search-section {
+      margin-bottom: 40px;
+      animation: fadeUp 0.6s 0.15s ease both;
+    }
+
+    .search-card {
+      background: var(--bg2);
+      border: 1px solid var(--border2);
+      border-radius: 16px;
+      padding: 24px;
+    }
+
+    .search-row {
+      display: flex;
+      gap: 12px;
+    }
+
+    .search-input {
+      flex: 1;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 18px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .search-input::placeholder { color: var(--text3); }
+
+    .search-input:focus {
+      border-color: rgba(74,222,128,0.5);
+      box-shadow: 0 0 0 3px rgba(74,222,128,0.08);
+    }
+
+    .search-btn {
+      background: var(--accent);
+      color: #0a1a0f;
+      border: none;
+      border-radius: 10px;
+      padding: 14px 28px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .search-btn:hover { background: var(--accent2); }
+    .search-btn:active { transform: scale(0.98); }
+    .search-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .suggestions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+
+    .suggestion-chip {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 5px 14px;
+      font-size: 13px;
+      color: var(--text2);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .suggestion-chip:hover {
+      border-color: var(--border2);
+      color: var(--text);
+    }
+
+    /* ── Loading ── */
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 48px 0;
+      animation: fadeUp 0.3s ease both;
+    }
+
+    .loading.visible { display: block; }
+
+    .spinner {
+      width: 40px; height: 40px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+
+    .loading-text {
+      font-size: 14px;
+      color: var(--text2);
+    }
+
+    .loading-steps {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+
+    .lstep {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text3);
+      transition: color 0.3s;
+    }
+
+    .lstep.active { color: var(--accent); }
+    .lstep.done { color: var(--text2); }
+
+    .lstep-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+      flex-shrink: 0;
+    }
+
+    /* ── Results ── */
+    .results {
+      display: none;
+      animation: fadeUp 0.4s ease both;
+    }
+
+    .results.visible { display: block; }
+
+    .results-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .results-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.4rem;
+      font-weight: 400;
+    }
+
+    .results-title span { color: var(--accent); }
+
+    .new-search-btn {
+      background: none;
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      padding: 8px 16px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      color: var(--text2);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .new-search-btn:hover {
+      border-color: var(--border2);
+      color: var(--text);
+    }
+
+    /* Result card */
+    .result-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px;
+    }
+
+    .result-content {
+      font-size: 15px;
+      line-height: 1.75;
+      color: var(--text);
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    /* Markdown-like styling for the AI response */
+    .result-content strong { color: var(--accent); font-weight: 600; }
+
+    /* Stats row */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .stat-card {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text3);
+      margin-bottom: 6px;
+    }
+
+    .stat-value {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.5rem;
+      color: var(--text);
+    }
+
+    .stat-value.green { color: var(--accent); }
+    .stat-value.gold { color: var(--gold); }
+
+    /* Error */
+    .error-card {
+      background: rgba(248,113,113,0.08);
+      border: 1px solid rgba(248,113,113,0.2);
+      border-radius: 12px;
+      padding: 20px 24px;
+      color: var(--red);
+      font-size: 14px;
+      display: none;
+    }
+
+    .error-card.visible { display: block; }
+
+    /* ── History ── */
+    .history {
+      margin-top: 32px;
+      display: none;
+    }
+
+    .history.visible { display: block; }
+
+    .history-title {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text3);
+      margin-bottom: 12px;
+    }
+
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .history-item {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 16px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: border-color 0.2s;
+      font-size: 14px;
+    }
+
+    .history-item:hover { border-color: var(--border2); }
+    .history-item-name { color: var(--text); }
+    .history-item-time { color: var(--text3); font-size: 12px; }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      padding: 48px 0 32px;
+      font-size: 12px;
+      color: var(--text3);
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── Animations ── */
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    .mode-selector {
+      display: flex;
+      gap: 8px;
+      margin-top: 14px;
+      align-items: center;
+    }
+    .mode-label {
+      font-size: 12px;
+      color: var(--text3);
+      white-space: nowrap;
+    }
+    .mode-btn {
+      padding: 6px 14px;
+      font-size: 13px;
+      border-radius: 100px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      color: var(--text2);
+      background: var(--bg3);
+      font-family: 'DM Sans', sans-serif;
+      transition: all 0.2s;
+    }
+    .mode-btn:hover { border-color: var(--border2); color: var(--text); }
+    .mode-btn.active {
+      background: var(--accent-glow);
+      border-color: rgba(74,222,128,0.4);
+      color: var(--accent);
+      font-weight: 500;
+    }
+    @media (max-width: 600px) {
+      .search-row { flex-direction: column; }
+      .search-btn { justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Header -->
+  <header>
+    <div class="logo-badge">
+      <div class="logo-dot"></div>
+      Agente IA activo
+    </div>
+    <h1>Compara precios<br>con <span>inteligencia artificial</span></h1>
+    <p class="subtitle">Busca cualquier producto y el agente encuentra<br>las mejores ofertas en segundos.</p>
+  </header>
+
+  <!-- Search -->
+  <div class="search-section">
+    <div class="search-card">
+      <div class="search-row">
+        <input
+          type="text"
+          class="search-input"
+          id="searchInput"
+          placeholder="Ej: iPhone 15 Pro Max 256GB, Samsung S24, AirPods Pro..."
+          autocomplete="off"
+        >
+        <button class="search-btn" id="searchBtn" onclick="buscar()">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          Buscar
+        </button>
+      </div>
+      <div class="suggestions">
+        <span style="font-size:12px;color:var(--text3);align-self:center;">Prueba:</span>
+        <div class="suggestion-chip" onclick="setQuery('MacBook Air M3')">MacBook Air M3</div>
+        <div class="suggestion-chip" onclick="setQuery('Samsung 65 pulgadas 4K')">Samsung 65" 4K</div>
+        <div class="suggestion-chip" onclick="setQuery('PlayStation 5')">PlayStation 5</div>
+        <div class="suggestion-chip" onclick="setQuery('AirPods Pro 2da generación')">AirPods Pro</div>
+      </div>
+      <div class="mode-selector">
+        <span class="mode-label">Buscar en:</span>
+        <button class="mode-btn active" id="mode-todo" onclick="setMode('todo')">🛍️ Todas las tiendas</button>
+        <button class="mode-btn" id="mode-super" onclick="setMode('super')">🛒 Solo supermercados</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading" id="loading">
+    <div class="spinner"></div>
+    <div class="loading-text">El agente está buscando los mejores precios...</div>
+    <div class="loading-steps">
+      <div class="lstep" id="step1"><div class="lstep-dot"></div> Google Shopping</div>
+      <div class="lstep" id="step2"><div class="lstep-dot"></div> Falabella</div>
+      <div class="lstep" id="step3"><div class="lstep-dot"></div> Comparando precios</div>
+      <div class="lstep" id="step4"><div class="lstep-dot"></div> Generando análisis</div>
+    </div>
+  </div>
+
+  <!-- Error -->
+  <div class="error-card" id="errorCard"></div>
+
+  <!-- Results -->
+  <div class="results" id="results">
+    <div class="results-header">
+      <div class="results-title">Resultados para <span id="resultProduct"></span></div>
+      <button class="new-search-btn" onclick="resetSearch()">← Nueva búsqueda</button>
+    </div>
+    <div class="result-card">
+      <div class="result-content" id="resultContent"></div>
+    </div>
+  </div>
+
+  <!-- History -->
+  <div class="history" id="history">
+    <div class="history-title">Búsquedas recientes</div>
+    <div class="history-list" id="historyList"></div>
+  </div>
+
+</div>
+
+<footer>
+  Powered by Claude AI · PrecioMeter v1.0
+</footer>
+
+<script>
+  let searchHistory = JSON.parse(localStorage.getItem('searchHistory') || '[]');
+  let loadingInterval = null;
+
+  function setQuery(text) {
+    document.getElementById('searchInput').value = text;
+    document.getElementById('searchInput').focus();
+  }
+
+  function resetSearch() {
+    document.getElementById('results').classList.remove('visible');
+    document.getElementById('errorCard').classList.remove('visible');
+    document.getElementById('searchInput').value = '';
+    document.getElementById('searchInput').focus();
+    renderHistory();
+  }
+
+  function animateLoadingSteps() {
+    const steps = ['step1', 'step2', 'step3', 'step4'];
+    let i = 0;
+    steps.forEach(s => document.getElementById(s).className = 'lstep');
+    loadingInterval = setInterval(() => {
+      if (i > 0) document.getElementById(steps[i-1]).className = 'lstep done';
+      if (i < steps.length) {
+        document.getElementById(steps[i]).className = 'lstep active';
+        i++;
+      } else {
+        clearInterval(loadingInterval);
+      }
+    }, 2200);
+  }
+
+  async function buscar() {
+    const input = document.getElementById('searchInput');
+    const producto = input.value.trim();
+    if (!producto) { input.focus(); return; }
+
+    // UI: show loading
+    document.getElementById('loading').classList.add('visible');
+    document.getElementById('results').classList.remove('visible');
+    document.getElementById('errorCard').classList.remove('visible');
+    document.getElementById('history').classList.remove('visible');
+    document.getElementById('searchBtn').disabled = true;
+    animateLoadingSteps();
+
+    try {
+      const res = await fetch('/buscar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ producto, modo: currentMode }),
+      });
+
+      const data = await res.json();
+      clearInterval(loadingInterval);
+      document.getElementById('loading').classList.remove('visible');
+      document.getElementById('searchBtn').disabled = false;
+
+      if (data.error) {
+        const err = document.getElementById('errorCard');
+        err.textContent = '❌ ' + data.error;
+        err.classList.add('visible');
+        return;
+      }
+
+      // Show results
+      document.getElementById('resultProduct').textContent = '"' + producto + '"';
+      document.getElementById('resultContent').textContent = data.resultado;
+      document.getElementById('results').classList.add('visible');
+
+      // Save to history
+      searchHistory.unshift({ producto, time: new Date().toLocaleTimeString('es-CL', {hour:'2-digit', minute:'2-digit'}) });
+      searchHistory = searchHistory.slice(0, 5);
+      localStorage.setItem('searchHistory', JSON.stringify(searchHistory));
+      renderHistory();
+
+    } catch (e) {
+      clearInterval(loadingInterval);
+      document.getElementById('loading').classList.remove('visible');
+      document.getElementById('searchBtn').disabled = false;
+      const err = document.getElementById('errorCard');
+      err.textContent = '❌ Error de conexión. ¿Está corriendo el servidor?';
+      err.classList.add('visible');
+    }
+  }
+
+  function renderHistory() {
+    const container = document.getElementById('history');
+    const list = document.getElementById('historyList');
+    if (searchHistory.length === 0) { container.classList.remove('visible'); return; }
+    list.innerHTML = searchHistory.map(h => `
+      <div class="history-item" onclick="setQuery('${h.producto.replace(/'/g, "\\'")}')">
+        <span class="history-item-name">🔍 ${h.producto}</span>
+        <span class="history-item-time">${h.time}</span>
+      </div>
+    `).join('');
+    container.classList.add('visible');
+  }
+
+  let currentMode = 'todo';
+
+  function setMode(mode) {
+    currentMode = mode;
+    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('mode-' + mode).classList.add('active');
+  }
+
+  // Enter key support
+  document.getElementById('searchInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') buscar();
+  });
+
+  // Init
+  renderHistory();
+</script>
+</body>
+</html>
