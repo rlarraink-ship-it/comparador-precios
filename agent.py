@@ -40,6 +40,15 @@ TIENDAS_SUPER = [
     ("Unimarc",         buscar_en_unimarc),
 ]
 
+TIENDAS_CENCOSUD = [
+    ("Jumbo",           buscar_en_jumbo),
+    ("Lider",           buscar_en_lider),
+    ("Santa Isabel",    buscar_en_santaisabel),
+    ("Tottus",          buscar_en_tottus),
+    ("Acuenta",         buscar_en_acuenta),
+]
+]
+
 TODAS_LAS_TIENDAS = TIENDAS_RETAIL + TIENDAS_SUPER
 
 SYSTEM_PROMPT = """Eres un agente experto en comparación de precios para consumidores chilenos.
@@ -79,7 +88,12 @@ class AgenteComparadorPrecios:
             print(f"🔍 Buscando: {consulta} [{modo}]")
             print(f"{'='*55}")
 
-        tiendas = TIENDAS_SUPER if modo == "super" else TODAS_LAS_TIENDAS
+        if modo == "super":
+    tiendas = TIENDAS_SUPER
+elif modo == "cencosud":
+    tiendas = TIENDAS_CENCOSUD
+else:
+    tiendas = TODAS_LAS_TIENDAS
 
         # ── Paso 1: buscar en paralelo ────────────────────────────────────────
         resultados_acumulados = []
