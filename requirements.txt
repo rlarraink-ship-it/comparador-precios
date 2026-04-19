@@ -2,5 +2,3 @@ flask
 anthropic
 requests
 beautifulsoup4
-playwright
-playwright

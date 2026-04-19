@@ -488,127 +488,21 @@ def buscar_en_acuenta(producto: str) -> dict:
 
 
 def buscar_en_ahumada(producto: str) -> dict:
-    """Busca precios en Farmacia Ahumada usando Playwright."""
-    q = producto.replace(" ", "%20")
-    url = f"https://www.farmaciasahumada.cl/search?q={q}&search-button=&lang=null"
-    try:
-        from playwright.sync_api import sync_playwright
-        import time as _t, re as _re
-        with sync_playwright() as p:
-            browser = p.chromium.launch(headless=True)
-            page = browser.new_page(user_agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36")
-            page.goto(url, wait_until="networkidle")
-            _t.sleep(3)
-            resultados = []
-            for tarjeta in page.query_selector_all(".product-tile")[:6]:
-                texto = tarjeta.inner_text()
-                lineas = [l.strip() for l in texto.splitlines() if l.strip()]
-                nombre = next((l for l in lineas if len(l) > 10 and "$" not in l), "")
-                precios = _re.findall(r"\$[\d\.,]+", texto)
-                precio_texto = precios[0] if precios else ""
-                precio_num = _extraer_numero(precio_texto)
-                if precio_num > 0 and nombre:
-                    resultados.append({
-                        "tienda": "Farmacia Ahumada",
-                        "precio_texto": precio_texto,
-                        "precio_num": precio_num,
-                        "titulo": nombre[:80],
-                        "enlace": url,
-                        "envio": "Ver en sitio",
-                    })
-            browser.close()
-        if not resultados:
-            return {"producto_buscado": producto, "resultados": [], "nota": "Sin resultados en Ahumada", "url_directa": url}
-        return {"producto_buscado": producto, "total_resultados": len(resultados), "resultados": resultados, "fuente": "Farmacia Ahumada"}
-    except Exception as e:
-        return {"error": str(e), "resultados": []}
-
+    return _buscar_supermercado_via_serpapi(producto, "Farmacia Ahumada", "www.farmaciasahumada.cl")
 
 def buscar_en_salcobrand(producto: str) -> dict:
-    """Busca precios en Salcobrand usando Playwright."""
-    q = producto.replace(" ", "%20")
-    url = f"https://salcobrand.cl/search_result?query={q}"
-    try:
-        from playwright.sync_api import sync_playwright
-        import time as _t, re as _re
-        with sync_playwright() as p:
-            browser = p.chromium.launch(headless=True)
-            page = browser.new_page(user_agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36")
-            page.goto(url, wait_until="networkidle")
-            _t.sleep(4)
-            resultados = []
-            precios_els = page.query_selector_all(".display-offer-price")
-            for el in precios_els[:6]:
-                precio_texto = el.inner_text().strip()
-                precio_num = _extraer_numero(precio_texto)
-                nombre = el.evaluate("""el => {
-                    const c = el.closest('li, article, [class*=hit]');
-                    if (!c) return '';
-                    const n = c.querySelector('[class*=name], [class*=title], h2, h3');
-                    return n ? n.innerText.trim() : '';
-                }""") or producto
-                if precio_num > 0:
-                    resultados.append({
-                        "tienda": "Salcobrand",
-                        "precio_texto": precio_texto,
-                        "precio_num": precio_num,
-                        "titulo": nombre[:80],
-                        "enlace": url,
-                        "envio": "Ver en sitio",
-                    })
-            browser.close()
-        if not resultados:
-            return {"producto_buscado": producto, "resultados": [], "nota": "Sin resultados en Salcobrand", "url_directa": url}
-        return {"producto_buscado": producto, "total_resultados": len(resultados), "resultados": resultados, "fuente": "Salcobrand"}
-    except Exception as e:
-        return {"error": str(e), "resultados": []}
-
+    return _buscar_supermercado_via_serpapi(producto, "Salcobrand", "www.salcobrand.cl")
 
 def buscar_en_drsimi(producto: str) -> dict:
-    """Busca precios en Dr. Simi usando Playwright."""
-    q = producto.replace(" ", "%20")
-    url = f"https://www.drsimi.cl/{q}?_q={q}&map=ft"
-    try:
-        from playwright.sync_api import sync_playwright
-        import time as _t, re as _re
-        with sync_playwright() as p:
-            browser = p.chromium.launch(headless=True)
-            page = browser.new_page(user_agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36")
-            page.goto(url, wait_until="networkidle", timeout=30000)
-            _t.sleep(6)
-            resultados = []
-            for tarjeta in page.query_selector_all("article")[:6]:
-                texto = tarjeta.inner_text()
-                lineas = [l.strip() for l in texto.splitlines() if l.strip()]
-                nombre = next((l for l in lineas if len(l) > 10 and "$" not in l and "＋" not in l), "")
-                precios = _re.findall(r"\$[\d\.,]+", texto)
-                precio_texto = precios[0] if precios else ""
-                precio_num = _extraer_numero(precio_texto)
-                if precio_num > 0 and nombre:
-                    resultados.append({
-                        "tienda": "Dr. Simi",
-                        "precio_texto": precio_texto,
-                        "precio_num": precio_num,
-                        "titulo": nombre[:80],
-                        "enlace": url,
-                        "envio": "Ver en sitio",
-                    })
-            browser.close()
-        if not resultados:
-            return {"producto_buscado": producto, "resultados": [], "nota": "Sin resultados en Dr. Simi", "url_directa": url}
-        return {"producto_buscado": producto, "total_resultados": len(resultados), "resultados": resultados, "fuente": "Dr. Simi"}
-    except Exception as e:
-        return {"error": str(e), "resultados": []}
-
+    return _buscar_supermercado_via_serpapi(producto, "Dr. Simi", "www.drsimi.cl")
 
 def buscar_en_cruzverde(producto: str) -> dict:
-    """Cruz Verde requiere login — retorna link directo."""
     q = producto.replace(" ", "%20")
     return {
         "producto_buscado": producto,
         "resultados": [],
         "fuente": "Cruz Verde",
-        "nota": "Ver precios en Cruz Verde directamente",
+        "nota": "Ver en cruzverde.cl",
         "url_directa": f"https://www.cruzverde.cl/search?query={q}",
         "total_resultados": 0,
     }
