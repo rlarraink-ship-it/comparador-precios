@@ -1,4 +1,4 @@
-        """
+"""
 tools.py — Las herramientas que usa el agente para buscar precios.
 Cada función es una "habilidad" que Claude puede invocar.
 """
