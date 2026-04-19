@@ -26,7 +26,7 @@ def buscar():
         return jsonify({"error": "Escribe un producto para buscar."}), 400
 
     try:
-        if modo == "farmacias":
+        if modo == "farmacia":
             from tools import buscar_en_ahumada, buscar_en_salcobrand, buscar_en_drsimi, buscar_en_cruzverde
             farmacias = [
                 buscar_en_ahumada(producto),
