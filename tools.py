@@ -574,8 +574,8 @@ def buscar_en_drsimi(producto: str) -> dict:
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=True)
             page = browser.new_page(user_agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36")
-            page.goto(url, wait_until="networkidle")
-            _t.sleep(4)
+            page.goto(url, wait_until="networkidle", timeout=30000)
+            _t.sleep(6)
             resultados = []
             for tarjeta in page.query_selector_all("article")[:6]:
                 texto = tarjeta.inner_text()

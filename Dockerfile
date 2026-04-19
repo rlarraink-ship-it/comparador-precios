@@ -6,4 +6,5 @@ RUN pip install -r requirements.txt
 RUN playwright install chromium --with-deps
 
 COPY . .
+ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 CMD ["python3", "app.py"]
