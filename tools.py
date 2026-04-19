@@ -507,14 +507,14 @@ def buscar_en_drsimi(producto: str) -> dict:
 
 
 def _buscar_farmacia(producto: str, nombre: str, terminos: list) -> dict:
-    """Busca precios de una farmacia usando SerpApi sin filtro de dominio."""
+    """Busca precios de una farmacia usando SerpApi búsqueda web."""
     key = _get_serpapi_key()
     if not key:
         return {"producto_buscado": producto, "resultados": [], "nota": f"Sin clave SerpApi para {nombre}"}
     
     params = {
-        "engine": "google_shopping",
-        "q": f"{producto} {nombre}",
+        "engine": "google",
+        "q": f"{producto} precio {nombre} Chile",
         "gl": "cl", "hl": "es",
         "api_key": key, "num": 10,
     }
@@ -523,20 +523,20 @@ def _buscar_farmacia(producto: str, nombre: str, terminos: list) -> dict:
         r = _req.get("https://serpapi.com/search", params=params, timeout=15)
         data = r.json()
         resultados = []
-        for item in data.get("shopping_results", [])[:10]:
-            source = item.get("source", "").lower()
+        for item in data.get("organic_results", [])[:10]:
             link = item.get("link", "").lower()
-            if not any(t in source or t in link for t in terminos):
+            snippet = item.get("snippet", "")
+            if not any(t in link for t in terminos):
                 continue
-            precio_num = _extraer_numero(item.get("price", ""))
+            precio_num = _extraer_numero(snippet)
             if precio_num > 0:
                 resultados.append({
                     "tienda": nombre,
-                    "precio_texto": item.get("price", ""),
+                    "precio_texto": f"${precio_num:,.0f}".replace(",", "."),
                     "precio_num": precio_num,
                     "titulo": item.get("title", producto)[:80],
                     "enlace": item.get("link", ""),
-                    "envio": item.get("delivery", "Ver en sitio"),
+                    "envio": "Ver en sitio",
                 })
         if not resultados:
             return {"producto_buscado": producto, "resultados": [], "nota": f"Sin resultados en {nombre}"}
