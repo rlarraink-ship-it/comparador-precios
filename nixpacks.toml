@@ -1,2 +1,2 @@
-[phases.setup]
-cmds = ["playwright install chromium"]
+[phases.install]
+cmds = ["pip install playwright", "playwright install chromium --with-deps"]
