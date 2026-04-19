@@ -487,26 +487,60 @@ def buscar_en_acuenta(producto: str) -> dict:
 
 
 
+def _farmacia_playwright(producto, nombre, url, selector_tarjeta, selector_precio=None):
+    import re as _re
+    try:
+        from playwright.sync_api import sync_playwright
+        import time as _t
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True, args=["--no-sandbox","--disable-dev-shm-usage","--disable-gpu"])
+            page = browser.new_page(user_agent="Mozilla/5.0")
+            page.goto(url, wait_until="domcontentloaded", timeout=20000)
+            _t.sleep(4)
+            resultados = []
+            for el in page.query_selector_all(selector_tarjeta)[:6]:
+                texto = el.inner_text()
+                lineas = [l.strip() for l in texto.splitlines() if l.strip()]
+                nombre_prod = next((l for l in lineas if len(l) > 8 and not l.startswith("$")), "")
+                precios = _re.findall(r"\$[\d\.\,]+", texto)
+                precio_texto = precios[0] if precios else ""
+                precio_num = _extraer_numero(precio_texto)
+                if precio_num > 0 and nombre_prod:
+                    resultados.append({
+                        "tienda": nombre,
+                        "precio_texto": precio_texto,
+                        "precio_num": precio_num,
+                        "titulo": nombre_prod[:80],
+                        "enlace": url,
+                        "envio": "Ver en sitio",
+                    })
+            browser.close()
+        if not resultados:
+            return {"producto_buscado": producto, "resultados": [], "fuente": nombre, "url_directa": url, "total_resultados": 0}
+        return {"producto_buscado": producto, "total_resultados": len(resultados), "resultados": resultados, "fuente": nombre}
+    except Exception as e:
+        return {"error": str(e), "resultados": [], "fuente": nombre, "url_directa": url}
+
+
 def buscar_en_ahumada(producto: str) -> dict:
     q = producto.replace(" ", "%20")
-    return {"producto_buscado": producto, "resultados": [], "fuente": "Farmacia Ahumada",
-            "nota": f"🔗 Ver precios en farmaciasahumada.cl",
-            "url_directa": f"https://www.farmaciasahumada.cl/search?q={q}&search-button=&lang=null", "total_resultados": 0}
+    return _farmacia_playwright(producto, "Farmacia Ahumada",
+        f"https://www.farmaciasahumada.cl/search?q={q}&search-button=&lang=null",
+        ".product-tile")
 
 def buscar_en_salcobrand(producto: str) -> dict:
     q = producto.replace(" ", "%20")
-    return {"producto_buscado": producto, "resultados": [], "fuente": "Salcobrand",
-            "nota": f"🔗 Ver precios en salcobrand.cl",
-            "url_directa": f"https://salcobrand.cl/search_result?query={q}", "total_resultados": 0}
+    return _farmacia_playwright(producto, "Salcobrand",
+        f"https://salcobrand.cl/search_result?query={q}",
+        ".display-offer-price")
 
 def buscar_en_drsimi(producto: str) -> dict:
     q = producto.replace(" ", "%20")
-    return {"producto_buscado": producto, "resultados": [], "fuente": "Dr. Simi",
-            "nota": f"🔗 Ver precios en drsimi.cl",
-            "url_directa": f"https://www.drsimi.cl/{q}?_q={q}&map=ft", "total_resultados": 0}
+    return _farmacia_playwright(producto, "Dr. Simi",
+        f"https://www.drsimi.cl/{q}?_q={q}&map=ft",
+        "article")
 
 def buscar_en_cruzverde(producto: str) -> dict:
     q = producto.replace(" ", "%20")
     return {"producto_buscado": producto, "resultados": [], "fuente": "Cruz Verde",
-            "nota": f"🔗 Ver precios en cruzverde.cl",
             "url_directa": f"https://www.cruzverde.cl/search?query={q}", "total_resultados": 0}
