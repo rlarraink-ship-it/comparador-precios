@@ -488,21 +488,25 @@ def buscar_en_acuenta(producto: str) -> dict:
 
 
 def buscar_en_ahumada(producto: str) -> dict:
-    return _buscar_supermercado_via_serpapi(producto, "Farmacia Ahumada", "www.farmaciasahumada.cl")
+    q = producto.replace(" ", "%20")
+    return {"producto_buscado": producto, "resultados": [], "fuente": "Farmacia Ahumada",
+            "nota": f"🔗 Ver precios en farmaciasahumada.cl",
+            "url_directa": f"https://www.farmaciasahumada.cl/search?q={q}&search-button=&lang=null", "total_resultados": 0}
 
 def buscar_en_salcobrand(producto: str) -> dict:
-    return _buscar_supermercado_via_serpapi(producto, "Salcobrand", "www.salcobrand.cl")
+    q = producto.replace(" ", "%20")
+    return {"producto_buscado": producto, "resultados": [], "fuente": "Salcobrand",
+            "nota": f"🔗 Ver precios en salcobrand.cl",
+            "url_directa": f"https://salcobrand.cl/search_result?query={q}", "total_resultados": 0}
 
 def buscar_en_drsimi(producto: str) -> dict:
-    return _buscar_supermercado_via_serpapi(producto, "Dr. Simi", "www.drsimi.cl")
+    q = producto.replace(" ", "%20")
+    return {"producto_buscado": producto, "resultados": [], "fuente": "Dr. Simi",
+            "nota": f"🔗 Ver precios en drsimi.cl",
+            "url_directa": f"https://www.drsimi.cl/{q}?_q={q}&map=ft", "total_resultados": 0}
 
 def buscar_en_cruzverde(producto: str) -> dict:
     q = producto.replace(" ", "%20")
-    return {
-        "producto_buscado": producto,
-        "resultados": [],
-        "fuente": "Cruz Verde",
-        "nota": "Ver en cruzverde.cl",
-        "url_directa": f"https://www.cruzverde.cl/search?query={q}",
-        "total_resultados": 0,
-    }
+    return {"producto_buscado": producto, "resultados": [], "fuente": "Cruz Verde",
+            "nota": f"🔗 Ver precios en cruzverde.cl",
+            "url_directa": f"https://www.cruzverde.cl/search?query={q}", "total_resultados": 0}
