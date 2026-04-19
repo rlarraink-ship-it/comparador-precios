@@ -19,10 +19,17 @@ from tools import (
     buscar_en_unimarc,
     buscar_en_santaisabel,
     buscar_en_acuenta,
+    buscar_en_ahumada,
+    buscar_en_salcobrand,
+    buscar_en_drsimi,
+    buscar_en_cruzverde,
+    buscar_en_cruzverde,
+    buscar_en_salcobrand,
+    buscar_en_ahumada,
+    buscar_en_drsimi,
     comparar_precios,
 )
 
-# ── Catálogo completo de tiendas ──────────────────────────────────────────────
 TIENDAS_RETAIL = [
     ("Google Shopping",  lambda p: buscar_en_google_shopping(p, "CL")),
     ("Falabella",        buscar_en_falabella),
@@ -40,16 +47,14 @@ TIENDAS_SUPER = [
     ("Unimarc",         buscar_en_unimarc),
 ]
 
-TIENDAS_CENCOSUD = [
-    ("Jumbo",           buscar_en_jumbo),
-    ("Lider",           buscar_en_lider),
-    ("Santa Isabel",    buscar_en_santaisabel),
-    ("Tottus",          buscar_en_tottus),
-    ("Acuenta",         buscar_en_acuenta),
+TIENDAS_FARMACIAS = [
+    ("Cruz Verde",      buscar_en_cruzverde),
+    ("Salcobrand",      buscar_en_salcobrand),
+    ("Ahumada",         buscar_en_ahumada),
+    ("Dr. Simi",        buscar_en_drsimi),
 ]
 
-
-TODAS_LAS_TIENDAS = TIENDAS_RETAIL + TIENDAS_SUPER
+TODAS_LAS_TIENDAS = TIENDAS_RETAIL + TIENDAS_SUPER + TIENDAS_FARMACIAS
 
 SYSTEM_PROMPT = """Eres un agente experto en comparación de precios para consumidores chilenos.
 
@@ -60,7 +65,7 @@ Formato de respuesta:
 - Empieza con 🏆 y el mejor precio encontrado con la tienda
 - Muestra el ranking de las 5 mejores opciones con precio y tienda
 - Indica el ahorro potencial (precio más caro vs más barato)
-- Da 1-2 consejos prácticos sobre envío, cuotas o disponibilidad
+- Da 1-2 consejos prácticos sobre envío, disponibilidad o equivalentes genéricos
 - Si algunas tiendas no encontraron resultados, mencionalo brevemente
 - Sé conciso y directo
 
@@ -80,8 +85,9 @@ class AgenteComparadorPrecios:
 
     def ejecutar(self, consulta: str, modo: str = "todo", verbose: bool = True) -> str:
         """
-        modo: "todo"  → busca en retail + supermercados
-              "super" → busca solo en supermercados
+        modo: "todo"     → todas las tiendas
+              "super"    → solo supermercados
+              "farmacia" → solo farmacias
         """
         if verbose:
             print(f"\n{'='*55}")
@@ -90,8 +96,8 @@ class AgenteComparadorPrecios:
 
         if modo == "super":
             tiendas = TIENDAS_SUPER
-        elif modo == "cencosud":
-            tiendas = TIENDAS_CENCOSUD
+        elif modo == "farmacia":
+            tiendas = TIENDAS_FARMACIAS
         else:
             tiendas = TODAS_LAS_TIENDAS
 
@@ -118,9 +124,15 @@ class AgenteComparadorPrecios:
             print(f"\n📊 Comparando {total} ofertas...")
 
         # ── Paso 3: Claude redacta el resumen ─────────────────────────────────
+        modo_texto = {
+            "super": "Solo supermercados",
+            "farmacia": "Solo farmacias",
+            "todo": "Todas las tiendas"
+        }.get(modo, "Todas las tiendas")
+
         contexto = (
             f"El usuario busca: {consulta}\n"
-            f"Modo de búsqueda: {'Solo supermercados' if modo == 'super' else 'Todas las tiendas'}\n\n"
+            f"Modo de búsqueda: {modo_texto}\n\n"
             f"Resultados:\n{json.dumps(comparacion, ensure_ascii=False, indent=2)}\n\n"
             f"Tiendas consultadas:\n"
             + "\n".join(f"- {r.get('fuente', '?')}: {r.get('total_resultados', 0)} resultados"

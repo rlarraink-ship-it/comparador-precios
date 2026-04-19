@@ -23,7 +23,7 @@ HEADERS = {
 
 # ── Pon tu clave SerpApi aquí (una sola vez para todas las tiendas) ─────────
 # Regístrate gratis en https://serpapi.com (100 búsquedas/mes)
-SERPAPI_KEY = "40e33ba0e07e8ff6ec5005cf365b2c44af1a612a8e1ed31440716944ce4ec8ad"
+SERPAPI_KEY = "TU_CLAVE_SERPAPI_AQUI"
 
 
 def buscar_en_google_shopping(producto: str, pais: str = "CL") -> dict:
@@ -400,7 +400,15 @@ def _buscar_supermercado_via_serpapi(producto: str, tienda: str, dominio: str) -
             "jumbo.cl":        ["jumbo", "cencosud"],
             "tottus.cl":       ["tottus", "falabella"],
             "santaisabel.cl":  ["santa isabel", "santaisabel", "cencosud"],
+            "farmaciasahumada.cl": ["ahumada", "farmacias ahumada"],
+            "salcobrand.cl":      ["salcobrand"],
+            "drogueriasimi.cl":   ["simi", "dr simi", "dr. simi"],
+            "cruzverde.cl":       ["cruz verde", "cruzverde"],
             "acuenta.cl":      ["acuenta", "cencosud"],
+            "cruzverde.cl":    ["cruz verde", "cruzverde"],
+            "salcobrand.cl":   ["salcobrand"],
+            "farmaciasahumada.cl": ["ahumada", "farmacias ahumada"],
+            "drsimi.cl":       ["dr simi", "dr. simi", "simi"],
         }
         dominio_corto = dominio.replace("www.", "")
         terminos = [dominio_corto] + aliases.get(dominio_corto, [])
@@ -476,3 +484,43 @@ def buscar_en_santaisabel(producto: str) -> dict:
 def buscar_en_acuenta(producto: str) -> dict:
     """Busca precios en Acuenta Chile vía Google Shopping."""
     return _buscar_supermercado_via_serpapi(producto, "Acuenta", "www.acuenta.cl")
+
+
+def buscar_en_cruzverde(producto: str) -> dict:
+    """Busca precios en Cruz Verde Chile vía Google Shopping."""
+    return _buscar_supermercado_via_serpapi(producto, "Cruz Verde", "www.cruzverde.cl")
+
+
+def buscar_en_salcobrand(producto: str) -> dict:
+    """Busca precios en Salcobrand Chile vía Google Shopping."""
+    return _buscar_supermercado_via_serpapi(producto, "Salcobrand", "www.salcobrand.cl")
+
+
+def buscar_en_ahumada(producto: str) -> dict:
+    """Busca precios en Farmacias Ahumada Chile vía Google Shopping."""
+    return _buscar_supermercado_via_serpapi(producto, "Ahumada", "www.farmaciasahumada.cl")
+
+
+def buscar_en_drsimi(producto: str) -> dict:
+    """Busca precios en Dr. Simi Chile vía Google Shopping."""
+    return _buscar_supermercado_via_serpapi(producto, "Dr. Simi", "www.drsimi.cl")
+
+
+def buscar_en_ahumada(producto: str) -> dict:
+    """Busca precios en Farmacia Ahumada vía Google Shopping."""
+    return _buscar_supermercado_via_serpapi(producto, "Farmacia Ahumada", "www.farmaciasahumada.cl")
+
+
+def buscar_en_salcobrand(producto: str) -> dict:
+    """Busca precios en Salcobrand vía Google Shopping."""
+    return _buscar_supermercado_via_serpapi(producto, "Salcobrand", "www.salcobrand.cl")
+
+
+def buscar_en_drsimi(producto: str) -> dict:
+    """Busca precios en Dr. Simi vía Google Shopping."""
+    return _buscar_supermercado_via_serpapi(producto, "Dr. Simi", "www.drogueriasimi.cl")
+
+
+def buscar_en_cruzverde(producto: str) -> dict:
+    """Busca precios en Cruz Verde vía Google Shopping."""
+    return _buscar_supermercado_via_serpapi(producto, "Cruz Verde", "www.cruzverde.cl")
