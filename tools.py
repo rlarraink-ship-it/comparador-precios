@@ -506,21 +506,53 @@ def buscar_en_drsimi(producto: str) -> dict:
     return _buscar_supermercado_via_serpapi(producto, "Dr. Simi", "www.drsimi.cl")
 
 
-def buscar_en_ahumada(producto: str) -> dict:
-    """Busca precios en Farmacia Ahumada vía Google Shopping."""
-    return _buscar_supermercado_via_serpapi(producto, "Farmacia Ahumada", "www.farmaciasahumada.cl")
+def _buscar_farmacia(producto: str, nombre: str, terminos: list) -> dict:
+    """Busca precios de una farmacia usando SerpApi sin filtro de dominio."""
+    key = _get_serpapi_key()
+    if not key:
+        return {"producto_buscado": producto, "resultados": [], "nota": f"Sin clave SerpApi para {nombre}"}
+    
+    params = {
+        "engine": "google_shopping",
+        "q": f"{producto} {nombre}",
+        "gl": "cl", "hl": "es",
+        "api_key": key, "num": 10,
+    }
+    try:
+        import requests as _req
+        r = _req.get("https://serpapi.com/search", params=params, timeout=15)
+        data = r.json()
+        resultados = []
+        for item in data.get("shopping_results", [])[:10]:
+            source = item.get("source", "").lower()
+            link = item.get("link", "").lower()
+            if not any(t in source or t in link for t in terminos):
+                continue
+            precio_num = _extraer_numero(item.get("price", ""))
+            if precio_num > 0:
+                resultados.append({
+                    "tienda": nombre,
+                    "precio_texto": item.get("price", ""),
+                    "precio_num": precio_num,
+                    "titulo": item.get("title", producto)[:80],
+                    "enlace": item.get("link", ""),
+                    "envio": item.get("delivery", "Ver en sitio"),
+                })
+        if not resultados:
+            return {"producto_buscado": producto, "resultados": [], "nota": f"Sin resultados en {nombre}"}
+        return {"producto_buscado": producto, "total_resultados": len(resultados), "resultados": resultados, "fuente": nombre}
+    except Exception as e:
+        return {"error": str(e), "resultados": []}
 
+
+def buscar_en_ahumada(producto: str) -> dict:
+    return _buscar_farmacia(producto, "Farmacia Ahumada", ["ahumada", "farmaciasahumada"])
 
 def buscar_en_salcobrand(producto: str) -> dict:
-    """Busca precios en Salcobrand vía Google Shopping."""
-    return _buscar_supermercado_via_serpapi(producto, "Salcobrand", "www.salcobrand.cl")
-
+    return _buscar_farmacia(producto, "Salcobrand", ["salcobrand"])
 
 def buscar_en_drsimi(producto: str) -> dict:
-    """Busca precios en Dr. Simi vía Google Shopping."""
-    return _buscar_supermercado_via_serpapi(producto, "Dr. Simi", "www.drogueriasimi.cl")
-
+    return _buscar_farmacia(producto, "Dr. Simi", ["simi", "drogueriasimi"])
 
 def buscar_en_cruzverde(producto: str) -> dict:
-    """Busca precios en Cruz Verde vía Google Shopping."""
-    return _buscar_supermercado_via_serpapi(producto, "Cruz Verde", "www.cruzverde.cl")
+    return _buscar_farmacia(producto, "Cruz Verde", ["cruzverde", "cruz verde"])
