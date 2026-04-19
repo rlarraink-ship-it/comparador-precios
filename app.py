@@ -24,7 +24,8 @@ def index():
 
 @app.route("/buscar", methods=["POST"])
 def buscar():
-    """Endpoint que recibe el producto y retorna la comparación como JSON."""
+    "@app.route("/buscar", methods=["POST"])
+def buscar():
     data = request.get_json()
     producto = data.get("producto", "").strip()
     modo = data.get("modo", "todo")
@@ -33,16 +34,24 @@ def buscar():
         return jsonify({"error": "Escribe un producto para buscar."}), 400
 
     try:
-        # Ejecutar el agente (verbose=False para no imprimir en terminal)
+        if modo == "farmacias":
+            from tools import buscar_en_ahumada, buscar_en_salcobrand, buscar_en_drsimi, buscar_en_cruzverde
+            farmacias = [
+                buscar_en_ahumada(producto),
+                buscar_en_salcobrand(producto),
+                buscar_en_drsimi(producto),
+                buscar_en_cruzverde(producto),
+            ]
+            links = "\n".join(
+                f"🔗 {f['fuente']}: {f['url_directa']}"
+                for f in farmacias if f.get("url_directa")
+            )
+            resultado = f"💊 Busca {producto} en cada farmacia:\n\n{links}"
+            return jsonify({"resultado": resultado, "producto": producto})
+
         resultado = agente.ejecutar(producto, modo=modo, verbose=True)
         return jsonify({"resultado": resultado, "producto": producto})
+
     except Exception as e:
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
-
-
-if __name__ == "__main__":
-    print("\n🌐 Servidor iniciado en: http://localhost:5000")
-    print("   Comparte esta URL con amigos en tu misma red WiFi:")
-    print("   http://TU-IP-LOCAL:5000  (ejecuta 'ipconfig getifaddr en0' para ver tu IP)\n")
-    app.run(debug=True, host="0.0.0.0", port=5000)
